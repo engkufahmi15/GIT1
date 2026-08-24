@@ -1,2 +1,1 @@
-# GIT1
-Git explore
+Purpose = Is to Explore Git Command
