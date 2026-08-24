@@ -1,0 +1,147 @@
+FixJustify()
+'
+' FixJustify Macro
+'
+'
+    Dim P As Paragraph
+    
+    For Each P In ActiveDocument.Range.Paragraphs
+    
+        If P.Format.Alignment = wdAlignParagraphJustify Then
+        
+            P.Format.Alignment = wdAlignParagraphLeft
+            
+        End If
+    
+    Next P
+
+Call HeadingFormat
+End Sub
+
+
+Sub HeadingFormat()
+
+    Dim T As Table
+    Dim IndexRow As Integer
+    Dim IndexCol As Integer
+    Dim R As Range
+    Dim Cel As Cell
+    Dim Str As String
+    Dim Str2 As String
+    Dim Str3 As String
+    Dim ArrRow() As String
+    Dim ArrCol() As String
+    Dim i As Long
+    Dim PreviousCol As Long
+    Dim PreviousRow As Long
+    Dim Anomaly As Boolean
+    Dim LastRow As Integer
+    Dim LastCol As Integer
+    Dim TableNo As Integer
+    
+    TableNo = 0
+    
+    For Each T In ActiveDocument.Tables
+    
+        Str = ""
+        Str2 = ""
+        Str3 = "(R,C) = "
+        i = 0
+        TableNo = TableNo + 1
+        'MsgBox "Table number : " & TableNo
+    
+        For Each Cel In T.Range.Cells
+        
+            If Cel.NestingLevel = 1 Then
+                
+                IndexRow = Cel.RowIndex
+                'MsgBox IndexRow
+                Str = Str & IndexRow & "," 'Row
+                
+                IndexCol = Cel.ColumnIndex
+                'MsgBox IndexCol
+                Str2 = Str2 & IndexCol & "," 'Column
+                Str3 = Str3 & "(" & IndexRow & ", " & IndexCol & "), "
+                
+            Else
+            
+                MsgBox "Found Nested Table" & TableNo
+            
+            End If
+            
+        Next Cel
+        
+        If Len(Str) > 0 Then Str = Left(Str, Len(Str) - 1)
+        If Len(Str2) > 0 Then Str2 = Left(Str2, Len(Str2) - 1)
+        
+        'MsgBox Str
+        'MsgBox Str2
+        'MsgBox Str3
+        
+        ArrRow = Split(Str, ",")
+        ArrCol = Split(Str2, ",")
+        
+        Anomaly = True
+        
+        PreviousRow = CLng(ArrRow(0))
+        PreviousCol = CLng(ArrCol(0))
+        
+        For i = LBound(ArrRow) To UBound(ArrRow)
+        
+            If CLng(ArrRow(i)) <> PreviousRow Then
+            
+                PreviousRow = CLng(ArrRow(i))
+                
+                If CLng(ArrCol(i)) = 1 Then
+                    
+                    PreviousCol = CLng(ArrCol(i))
+                    Anomaly = False
+                    
+                End If
+                
+                If Anomaly = False Then
+                    
+                    If i > 0 Then
+                    
+                        LastRow = CLng(ArrRow(i - 1))
+                        LastCol = CLng(ArrCol(i - 1))
+                        'MsgBox "Last Row and Column : (" & LastRow & ", " & LastCol & ")"
+                        Call EngineSelectCells(LastRow, LastCol, TableNo)
+                        Exit For
+                    
+                    End If
+                
+                End If
+            
+            End If
+        
+        Next i
+    
+    Next T
+
+End Sub
+
+
+Sub EngineSelectCells(EndRow As Integer, EndCol As Integer, TableNumber As Integer)
+
+    Dim T As Table
+    Dim CellStart As Cell
+    Dim CellEnd As Cell
+    Dim R As Range
+    
+    Set T = ActiveDocument.Tables(TableNumber)
+    
+    Set CellStart = T.Cell(1, 1)
+    Set CellEnd = T.Cell(EndRow, EndCol)
+    
+    Set R = ActiveDocument.Range( _
+        Start:=CellStart.Range.Start, _
+        End:=CellEnd.Range.End _
+    )
+    
+    R.Select
+    Selection.Rows.HeadingFormat = True
+    
+    'MsgBox "The Engine Has Successfully selected the targeted rows of table: " & TableNumber
+
+End Sub
