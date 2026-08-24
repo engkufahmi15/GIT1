@@ -1,0 +1,1 @@
+int humid = 50;
