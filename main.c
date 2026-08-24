@@ -1,9 +1,9 @@
 int var = 20;
 float f = 50.2;
 
-void main()
+int main()
 {
     int val2 = 20;
-
+    return 0;
 }
 
